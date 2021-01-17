@@ -27,6 +27,8 @@ keys = {
         },
         "keydown": {
             "url": "http://...",
+            "urlON": "http://...",
+            "urlOFF": "http://...",
             "header": {"content-type": "application/json"},
             "body": "{\"on\":false}"
             "bodyON": "{\"on\":false}"
@@ -59,14 +61,41 @@ def get_color(key_name):
     
     if "color" + state in key:
         return key["color" + state]
+    elif "color" in key:
+        return key["color"]
     return 0x000000
     
-    
+def get_keydown_url(key):
+    state = get_state(key)
+
+    if "keydown" in key:
+        keydown = key["keydown"]
+        if "url" + state in keydown:
+            return keydown["url"+state]
+        elif "url" in keydown:
+            return keydown["url"]
+
+    return ""
+
+def get_keydown_body(key):
+    state = get_state(key)
+
+    if "keydown" in key:
+        keydown = key["keydown"]
+        if "body" + state in keydown:
+            return keydown["body"+state]
+        elif "body" in keydown:
+            return keydown["body"]
+
+    return ""
+
+
 def update_state():
     # threads = {}
     while True:
         print ("Starting update")
         for kN in keyNames:
+            invalidate_state(keys[kN])
             color = get_color(kN)
             update_color(kN,color)
 #            threads[kN] =threading.Thread(target=update_color, name="Color " + kN, args=[kN,color])
@@ -74,14 +103,25 @@ def update_state():
         print("update finished")
         sleep(2)
 
+def invalidate_state(key):
+    if "state" in key:
+        key.pop("state")
+        
 def get_state(key):
+    if "state" in key:
+        return key["state"]
+    
     if "state_req" in key:
         state_req = key["state_req"]
         if "url" in state_req:
-            res = requests.get(state_req["url"])
-            if (res.text == state_req["stateON"]):
-                key["state"]="ON"
-            else:
+            try:
+                res = requests.get(state_req["url"])
+            
+                if (res.text == state_req["stateON"]):
+                    key["state"]="ON"
+                else:
+                    key["state"]="OFF"
+            except:
                 key["state"]="OFF"
         elif "bash" in state_req:
             process = subprocess.Popen(state_req["bash"], shell=True, stdout=subprocess.PIPE)
@@ -102,26 +142,27 @@ def handle(button):
     keyName = keyNames[button]
     if keyName in keys:
         key = keys[keyName]
+
+        # handle non-keydown events
         if not "down" in key:
             key["down"] = False
-    
         if GPIO.input(pins[button]) == 1:
             #update_state()
             key["down"]=False
             return
-
         if key["down"]:
             return
-
         key["down"] = True
+
+        #handle keydown event
         if "keydown" in key:
             keydown = key["keydown"]
-            if "url" in keydown:
-                
-                # get the state
-                state = get_state(key)
+            url = get_keydown_url(key)
+            if not (url == ""):
+                body = get_keydown_body(key)
                 # execute correct body
-                res = requests.put(keydown["url"],data=keydown["body" + state], headers=keydown["header"])
+                res = requests.put(url,data=body, headers=keydown["header"])
+        invalidate_state(key)
     sleep(0.3)
     update_color(keyName, get_color(keyName))
     print("handle done")
