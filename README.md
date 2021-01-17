@@ -22,6 +22,7 @@ A python-fireware for the pimoroni KeyBow 12-Key Keyboard based on Raspberry Pi 
 * Install requirements: 
   * `sudo apt install -y python3-pip python3-rpi.gpio`
   * `sudo pip3 install apa102-pi`
+* Enable SPI `sudo raspi-config` -> Interface Options -> SPI 
 * Download keybow.py
 * enable autostart
   * Create service script `/etc/systemd/system/WiKiBo.service`
@@ -112,11 +113,14 @@ The official KeyBow firmware (https://github.com/pimoroni/keybow-firmware) tries
 * WiKeyBow can control multiple devices at once
 * Control-actions are more flexible
 * WiKeyBow does not need to be pluged into a computer
-* WiKeyBow can be modified on the Raspberry Pi without additional development tools
+* WiKeyBow can be modified on the Raspberry Pi without additional development tools and wirelessly
 #### Advantages official firmware
 * no additional setup required to send simple keypresses
 * Boot-time is significantly quicker
 * smaller image size
+
+### XeBow
+The nerves-based firmware (https://github.com/ElixirSeattle/xebow) implements a USB-firmware in a joined framework with similar keyboards. Like the official KeyBow firmware it tries to achieve a different goal than WiKeyBow
 
 ### KiWi
 Kiwi (https://github.com/mrusme/kiwi) is another attmept to make the KeyBow wireless. Rather than based on Raspberry OS, it is based on the microcontroller OS Nerves. Button-actions are limited to http requests and the LED-Matrix can only be updated all-at-once.
