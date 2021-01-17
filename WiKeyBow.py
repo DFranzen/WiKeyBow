@@ -23,12 +23,16 @@ keys = {
         "state_req": {
             "bash": "echo ON"
             "url": "http://...",
+            "path": ["prop1", "prop2"],
             "stateON": 'ON'
         },
         "keydown": {
             "url": "http://...",
             "urlON": "http://...",
             "urlOFF": "http://...",
+            "bash": "echo ON",
+            "bashON": "echo ON",
+            "bashOFF": "echo ON",
             "header": {"content-type": "application/json"},
             "body": "{\"on\":false}",
             "bodyON": "{\"on\":false}",
@@ -116,8 +120,15 @@ def get_state(key):
         if "url" in state_req:
             try:
                 res = requests.get(state_req["url"])
+                if "path" in state_req:
+                    doc = res.json()
+                    for folder in state_req["path"]:
+                        doc = doc[folder]
+                    restext = str(doc)
+                else:
+                    restext = res.text
             
-                if (res.text == state_req["stateON"]):
+                if (restext == state_req["stateON"]):
                     key["state"]="ON"
                 else:
                     key["state"]="OFF"
