@@ -81,11 +81,11 @@ or
 ```
 
 ### Button-action
-Finally the action for each button press needs to be specified in the block `keydown`. It contains `url`, `header` and the body for the request, which can be either constant as `body` or state-dependent as `bodyON` (body in case the device is currently ON) and `bodyOFF` (body in case the device id currently OFF). In the later case, the state of the devce is evaluated first. If the result is ON, a request with `bodyON` is send, otherwise `bodyOFF` is send. 
+Finally the action for each button press needs to be specified in the block `keydown`. It contains `url`, `header` and `body`. The values `url` and `body` can either be specified constantly as `body` / `url` or state-dependent as `bodyON` / `urlON` (values in case the device is currently ON) and `bodyOFF` / `urlOFF` (value in case the device id currently OFF). All combinations are possible. If a dependent value is specified, the state of the devce is evaluated first. If the result is ON, a value with suffix ON will be used, otherwise the value with the suffix OFF is used. 
 Example:
 ```
         "keydown": {
-            "url": "http://192.168.1.100/api/",
+            "url": "http://192.168.0.100/api/",
             "header": {"content-type": "application/json"},
             "body": "{}"
         }
@@ -93,10 +93,20 @@ Example:
 or 
 ```
         "keydown": {
-            "url": "http://192.168.1.100/api/",
+            "url": "http://192.168.0.100/api/",
             "header": {"content-type": "application/json"},
             "bodyON": "{\"on\":false}"
             "bodyOFF": "{\"on\":true}"
+        }
+```
+
+or 
+```
+        "keydown": {
+            "urlON": "http://192.168.0.100/cm?cmnd=Power%20Off",
+            "urlOFF": "http://192.168.1.100/cm?cmnd=Power%20On",
+            "header": {"content-type": "application/json"},
+            "body": "{}"
         }
 ```
 
@@ -104,6 +114,25 @@ or
 ### TP-Link kasa
 
 ### Tasmota
+Here is a full example configuration for a button controlling a Tasmota device. The IP of the Tasmota-device needs to be adjusted.
+```
+    "key_1_in_row_4": {
+        "name": "Tasmota Lamp",
+        "state_req": {
+            "url": "http://192.168.0.100/cm?cmnd=status/power",
+            "stateON": '{"POWER":"ON"}',
+        },
+        "colorON" : 0x00FF00,
+        "colorOFF": 0xFF0000,
+        "keydown": {
+            "urlON": "http://192.168.0.100/cm?cmnd=Power%20Off",
+            "urlOFF": "http://192.168.0.100/cm?cmnd=Power%20On",
+            "header": {"content-type": "application/json"},
+            "body": "{}"
+        }
+
+    }
+```
 
 ## Comparison to other KeyBow firmwares
 
