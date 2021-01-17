@@ -43,6 +43,7 @@ A python-fireware for the pimoroni KeyBow 12-Key Keyboard based on Raspberry Pi 
   ```
   * reload deamon `systemctl daemon-reload`
   * activate using `sudo systemctl enable WiKeyBow`
+* It is also needed to setup the devices, to be controlled, with a static IP.
 
 ## Configuration
 
@@ -112,6 +113,25 @@ or
 
 ## Examples
 ### TP-Link kasa
+To control a Kasa-device, the auxiliary script tplink-smartplug.py (https://github.com/softScheck/tplink-smartplug) is used. The following example shows how to use it in WiKeyBow. The script needs to be played in the home-driectory, or the path in state_req and keydown needs to be adjusted. Also adjust the IP of the device as needed.
+
+```
+    "key_1_in_row_2": {
+        "name": "Kasa Lamp",
+        "state_req": {
+            "bash": "python3 /home/pi/tplink_smartplug.py -t 192.168.1.100 -c info | grep -oE .relay_state.:[0-9]| grep -o [0-9]\
+",
+            "stateON": '1',
+        },
+        "colorON" : 0x00FF00,
+        "colorOFF": 0xFF0000,
+        "keydown": {
+            "bashON": "python3 /home/pi/tplink_smartplug.py -t 192.168.1.100 -c off",
+            "bashOFF": "python3 /home/pi/tplink_smartplug.py -t 192.168.1.100 -c on"
+        }
+
+    },
+```
 
 ### Tasmota
 Here is a full example configuration for a button controlling a Tasmota device. The IP of the Tasmota-device needs to be adjusted.
