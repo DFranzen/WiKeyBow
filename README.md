@@ -45,6 +45,60 @@
 
 ## Configuration
 
+For each button, three properties need to be configured: Color, State-update and KeyPress-Action. All these configurations are specified at the top of the script.
+### Color
+The color for each button can be configured in either of two ways:
+#### Constant Color
+If the property "color" is set to a Hex-Representation of an RGB-color this color is used as constant color for the button.
+Example:
+` "color": 0xFF00FF`
+#### State-dependent Color
+If the properties "colorON" and "colorOFF" are set to HEX-representations of RGB-colors, one of these colors is set to the button, depending of the current state of the controlled device ("colorON", if the device is switched on, "colorOFF" otherwise)
+Example:
+```
+  "colorON": 0x00FF00,
+  "colorOFF": 0xFF0000,
+```
+
+### State-update
+If the button is state-dependent (either for the color or for the button-action), a command needs to be specified to evaluate the state of the device. This is done in the property `state_req`. It can be either a http-GET call or a bash-command. 
+Additionally a value `stateON` needs to be specified as an expected value for the ON state. To evaluate the state of a device, the command is executed and then compared to the value `stateON`.
+Example:
+```
+        "state_req": {
+            "url": "http://...",
+            "stateON": '{"POWER":"ON"}',
+        },
+```
+or 
+```
+        "state_req": {
+            "bash": "echo ON"
+            "stateON": 'ON',
+        },
+
+```
+
+### Button-action
+Finally the action for each button press needs to be specified in the block `keydown`. It contains `url`, `header` and the body for the request, which can be either constant as `body` or state-dependent as `bodyON` (body in case the device is currently ON) and `bodyOFF` (body in case the device id currently OFF). In the later case, the state of the devce is evaluated first. If the result is ON, a request with `bodyON` is send, otherwise `bodyOFF` is send. 
+Example:
+```
+        "keydown": {
+            "url": "http://192.168.1.100/api/",
+            "header": {"content-type": "application/json"},
+            "body": "{}"
+        }
+```
+or 
+```
+        "keydown": {
+            "url": "http://192.168.1.100/api/",
+            "header": {"content-type": "application/json"},
+            "bodyON": "{\"on\":false}"
+            "bodyOFF": "{\"on\":true}"
+        }
+```
+
 ## Examples
 ### TP-Link kasa
 
