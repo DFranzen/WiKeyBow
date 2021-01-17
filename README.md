@@ -24,7 +24,7 @@
   * `sudo pip3 install apa102-pi`
 * Download keybow.py
 * enable autostart
-  * Create service script at `/etc/systemd/system/WiKiBo`
+  * Create service script `/etc/systemd/system/WiKiBo.service`
   * insert the following code (with PATH/TO/SCRIPT adjusted)
   ```
   [Unit]
