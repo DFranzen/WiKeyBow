@@ -1,5 +1,5 @@
 # WiKeyBow
-12-Button fully programmable wireless Keyboard Version
+12-Button fully programmable wireless Keyboard Firmware
 
 ## Features
 * Wireless connections: The Keyboard only needs power, no USB-dataconnection required
@@ -20,22 +20,35 @@
 ## Installation
 * Setup the build-in raspberry with raspberry OS. (Tested on Version 2021-01-11, python3 required)
 * Install requirements: 
-** sudo apt install -y python3-pip python3-rpi.gpio
-** sudo pip3 install apa102-pi
+  * `sudo apt install -y python3-pip python3-rpi.gpio`
+  * `sudo pip3 install apa102-pi`
 * Download keybow.py
 * enable autostart
-** 
+  * Create service script at `/etc/systemd/system/WiKiBo`
+  * insert the following code (with PATH/TO/SCRIPT adjusted)
+  ```
+  [Unit]
+  Description=KeyBoard Listener for Button Presses and state changes
+  After=network-online.target
+
+  [Service]
+  Type=simple
+  User=pi
+  Group=pi
+  ExecStart=/usr/bin/python3 PATH/TO/SCRIPT/WiKeyBow.py
+
+  [Install]
+  WantedBy=network-online.target
+  ```
+  * reload deamon `systemctl daemon-reload`
+  * activate using `sudo systemctl enable WiKeyBow`
 
 ## Configuration
 
 ## Examples
-### Phillips Hue bridge
-
 ### TP-Link kasa
 
 ### Tasmota
-
-### SSH - XDoTools
 
 ## Comparison to other KeyBow firmwares
 
