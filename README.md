@@ -123,6 +123,15 @@ or
         }
 ```
 
+Alternatively the button-action can be specified as a bash command with the propterty `bash`. It is executed in a bash shell and the output is ignored. Again this property can be split into `bashON` and `bashOFF`, one of which will be executed depending on the current state of the device.
+Example:
+```
+        "keydown": {
+            "bashON": "python3 /home/pi/tplink_smartplug.py -t 192.168.1.100 -c off",
+            "bashOFF": "python3 /home/pi/tplink_smartplug.py -t 192.168.1.100 -c on"
+        }
+```
+
 ## Examples
 ### TP-Link kasa
 To control a Kasa-device, the auxiliary script tplink-smartplug.py (https://github.com/softScheck/tplink-smartplug) is used. The following example shows how to use it in WiKeyBow. The script needs to be played in the home-driectory, or the path in state_req and keydown needs to be adjusted. Also adjust the IP of the device as needed.
