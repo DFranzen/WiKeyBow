@@ -81,6 +81,18 @@ or
 
 ```
 
+
+In some cases (e.g. Phillips Hue) the response from the device is too long to compare as a whole. For this case, the path to be compared can be specified as a list in the property `path`. If it is specified, WiKeyBow converts the response from the given `url` into json and follows the path. The resulting sub-json is then converted back into a string and compared with the given `stateON`.
+Example:
+```
+        "state_req": {
+            "url": "http://192.168.1.100/api/user/lights/23",
+            "path": ["state","on"],
+            "stateON": 'True'
+        },
+```
+In this example, all parts of the response except `{"state": {"on": " ... "}}` are ignored.
+
 ### Button-action
 Finally the action for each button press needs to be specified in the block `keydown`. It contains `url`, `header` and `body`. The values `url` and `body` can either be specified constantly as `body` / `url` or state-dependent as `bodyON` / `urlON` (values in case the device is currently ON) and `bodyOFF` / `urlOFF` (value in case the device id currently OFF). All combinations are possible. If a dependent value is specified, the state of the devce is evaluated first. If the result is ON, a value with suffix ON will be used, otherwise the value with the suffix OFF is used. 
 Example:
