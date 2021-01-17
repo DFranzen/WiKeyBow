@@ -1,5 +1,5 @@
 # WiKeyBow
-12-Button fully programmable wireless Keyboard Firmware
+A python-fireware for the pimoroni KeyBow 12-Key Keyboard based on Raspberry Pi OS
 
 ## Features
 * Wireless connections: The Keyboard only needs power, no USB-dataconnection required
@@ -112,6 +112,7 @@ The official KeyBow firmware (https://github.com/pimoroni/keybow-firmware) tries
 * WiKeyBow can control multiple devices at once
 * Control-actions are more flexible
 * WiKeyBow does not need to be pluged into a computer
+* WiKeyBow can be modified on the Raspberry Pi without additional development tools
 #### Advantages official firmware
 * no additional setup required to send simple keypresses
 * Boot-time is significantly quicker
@@ -122,7 +123,8 @@ Kiwi (https://github.com/mrusme/kiwi) is another attmept to make the KeyBow wire
 #### Advantages WiKeyBow
 * Control each LED individually (without changing or switching of the other LEDs)
 * Bash command as button-actions in addition to http calls
-* [possible subjective] DHCP-Server not available, while KiWi is running
+* WiKeyBow can be modified on the Raspberry Pi without additional development tools
+* [possible subjective] KiWi is somehow blocking DHCP-Server on router while running, WiKeyBow has no inteference.
 #### Advantages KiWi
 * slightly quicker start-up time
 * Full keyboard animations
