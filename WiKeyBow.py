@@ -23,15 +23,15 @@ keys = {
         "state_req": {
             "bash": "echo ON"
             "url": "http://...",
-            "stateON": 'ON',
+            "stateON": 'ON'
         },
         "keydown": {
             "url": "http://...",
             "urlON": "http://...",
             "urlOFF": "http://...",
             "header": {"content-type": "application/json"},
-            "body": "{\"on\":false}"
-            "bodyON": "{\"on\":false}"
+            "body": "{\"on\":false}",
+            "bodyON": "{\"on\":false}",
             "bodyOFF": "{\"on\":true}"
         }
     },
