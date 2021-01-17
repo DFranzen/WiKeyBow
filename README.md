@@ -166,6 +166,48 @@ Here is a full example configuration for a button controlling a Tasmota device. 
     }
 ```
 
+### Philips Hue
+(This setup is in part borrowed from Kiwi (https://github.com/mrusme/kiwi)
+Find the IP address of your Philips Hue Bridge on your network and create a dedicated user:
+
+```
+curl -X "POST" "http://YOUR-HUE-BRIDGE-IP-HERE/api" \
+     -H 'Content-Type: application/json; charset=utf-8' \
+     -d $'{
+          "devicetype": "WiKeyBow#wikeybow"
+        }'
+```
+
+This request will return an auto-generated username. With this you can then check all your connected lights:
+
+```
+curl "http://YOUR-HUE-BRIDGE-IP-HERE/api/YOUR-GENERATED-USERNAME-HERE/lights" \
+     -H 'Content-Type: application/json; charset=utf-8' \
+     -d $'{}'
+```
+
+After you've identified the light you'd like to turn on/off, note down its ID and configure the button as follows:
+
+
+```
+    "key_1_in_row_4": {
+        "name": "Philips HUE Lamp",
+        "state_req": {
+            "url": "http://YOUR-HUE-BRIDGE-IP-HERE/api/YOUR-GENERATED-USERNAME-HERE/lights/ID",
+            "path": ["state","on"],
+            "stateON": 'True'
+        },
+        "colorON" : 0x00FF00,
+        "colorOFF": 0xFF0000,
+        "keydown": {
+            "url": "http://YOUR-HUE-BRIDGE-IP-HERE/api/YOUR-GENERATED-USERNAME-HERE/lights/ID",
+            "header": {"content-type": "application/json"},
+            "bodyON": "{\"on\":false}",
+            "bodyOFF": "{\"on\":true}"
+        }
+    },
+```
+
 ## Comparison to other KeyBow firmwares
 
 ### Official KeyBow firmware
