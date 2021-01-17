@@ -27,12 +27,12 @@ keys = {
             "stateON": 'ON'
         },
         "keydown": {
-            "url": "http://...",
-            "urlON": "http://...",
-            "urlOFF": "http://...",
             "bash": "echo ON",
             "bashON": "echo ON",
             "bashOFF": "echo ON",
+            "url": "http://...",
+            "urlON": "http://...",
+            "urlOFF": "http://...",
             "header": {"content-type": "application/json"},
             "body": "{\"on\":false}",
             "bodyON": "{\"on\":false}",
@@ -90,6 +90,18 @@ def get_keydown_body(key):
             return keydown["body"+state]
         elif "body" in keydown:
             return keydown["body"]
+
+    return ""
+
+def get_keydown_bash(key):
+    state = get_state(key)
+
+    if "keydown" in key:
+        keydown = key["keydown"]
+        if "bash" + state in keydown:
+            return keydown["bash"+state]
+        elif "bash" in keydown:
+            return keydown["bash"]
 
     return ""
 
@@ -169,10 +181,14 @@ def handle(button):
         if "keydown" in key:
             keydown = key["keydown"]
             url = get_keydown_url(key)
+            bash = get_keydown_bash(key)
             if not (url == ""):
                 body = get_keydown_body(key)
                 # execute correct body
                 res = requests.put(url,data=body, headers=keydown["header"])
+            elif not (bash == ""):
+                process = subprocess.Popen(bash, shell=True, stdout=subprocess.PIPE)
+                output, error = process.communicate()
         invalidate_state(key)
     sleep(0.3)
     update_color(keyName, get_color(keyName))
