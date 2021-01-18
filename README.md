@@ -16,6 +16,7 @@ A python-fireware for the pimoroni KeyBow 12-Key Keyboard based on Raspberry Pi 
 * Multi-press support
 * Layer-switching
 * Read configuration from JSON
+* Additional Events for keyup, longpress
 
 ## Installation
 * Setup the build-in raspberry with raspberry OS. (Tested on Version 2021-01-11, python3 required)
