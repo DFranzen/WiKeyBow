@@ -51,7 +51,6 @@ keys = {
     "key_2_in_row_4": {},
     "key_3_in_row_4": {}
 }
-
 strip = apa102.APA102(num_led=12, mosi=10, sclk=11, order='rgb')
 
 def update_color(key_name, color):
@@ -139,21 +138,25 @@ def get_state(key):
                     restext = str(doc)
                 else:
                     restext = res.text
-            
+
                 if (restext == state_req["stateON"]):
                     key["state"]="ON"
                 else:
                     key["state"]="OFF"
             except:
-                key["state"]="OFF"
+                key["state"]=""
         elif "bash" in state_req:
-            process = subprocess.Popen(state_req["bash"], shell=True, stdout=subprocess.PIPE)
-            output, error = process.communicate()
-            res = output.decode('UTF-8').rstrip()
-            if (res == state_req["stateON"]):
-                key["state"]="ON"
-            else:
-                key["state"]="OFF"
+            try:
+                process = subprocess.Popen(state_req["bash"], shell=True, stdout=subprocess.PIPE)
+                output, error = process.communicate()
+                res = output.decode('UTF-8').rstrip()
+                print("State result is "+ res)
+                if (res == state_req["stateON"]):
+                    key["state"]="ON"
+                else:
+                    key["state"]="OFF"
+            except:
+                key["state"]=""
 
     else:
         key["state"] = ""
@@ -185,11 +188,17 @@ def handle(button):
             if not (url == ""):
                 body = get_keydown_body(key)
                 # execute correct body
-                res = requests.put(url,data=body, headers=keydown["header"])
+                try: 
+                    res = requests.put(url,data=body, headers=keydown["header"])
+                except:
+                    res = ""
             elif not (bash == ""):
-                process = subprocess.Popen(bash, shell=True, stdout=subprocess.PIPE)
-                output, error = process.communicate()
-        invalidate_state(key)
+                try:
+                    process = subprocess.Popen(bash, shell=True, stdout=subprocess.PIPE)
+                    output, error = process.communicate()
+                except:
+                    output = ""
+            invalidate_state(key)
     sleep(0.3)
     update_color(keyName, get_color(keyName))
     print("handle done")
