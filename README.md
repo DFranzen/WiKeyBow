@@ -217,6 +217,32 @@ After you've identified the light you'd like to turn on/off, note down its ID an
     },
 ```
 
+### Linux Computer: XDoTool via SSH
+Most of the features, which the official KeyBow firmware accomplishes via a USB cable, can be done wirelessly with this implementation on a linux computer. However it takes a bit of setup:
+* Install `xdotool` on the Linux computer: `sudo apt -y install xdotool`
+* Enable ssh server on the Linux computer: `sudo apt install openssh-server`
+* Enable passwordless access on the raspberry pi: 
+```
+ssh-keygen
+ssh-copy-id <usernameOfComputer>@<ipOfComputer>
+```
+With this setup the following example sends the mute-mic button (and shows the mute status of the default mic):
+```
+    "key_2_in_row_4": {
+        "name": "Mic Mute",
+        "colorON": 0xff4000,
+        "colorOFF": 0x40ff00,
+        "state_req": {"state_req": {
+            "bash": "ssh <usernameOfComputer@<ipOfComputer> \"pactl list sources | grep -A 10 \$(pactl info | grep 'Default Source:' | cut -f3 -d' ') | grep 'Mute'| sed -e 's/^[[:space:]]*//'\"",
+            "stateON": "Mute: yes"
+        },
+        "keydown": {
+            "bash": "ssh <usernameOfComputer@<ipOfComputer> \"export DISPLAY=:0; xdotool key XF86AudioMicMute\""
+        }
+        
+    },
+```
+
 ## Comparison to other KeyBow firmwares
 
 ### Official KeyBow firmware
