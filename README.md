@@ -81,7 +81,7 @@ or
         },
 
 ```
-
+In addition to the `url` also `method`, `header`, `body` can be set to specify the http interaction in detail. If not given `method` is assumed to be GET and `header` and `body` left empty.
 
 In some cases (e.g. Phillips Hue) the response from the device is too long to compare as a whole. For this case, the path to be compared can be specified as a list in the property `path`. If it is specified, WiKeyBow converts the response from the given `url` into json and follows the path. The resulting sub-json is then converted back into a string and compared with the given `stateON`.
 Example:
@@ -95,7 +95,7 @@ Example:
 In this example, all parts of the response except `{"state": {"on": " ... "}}` are ignored.
 
 ### Button-action
-Finally the action for each button press needs to be specified in the block `keydown`. It contains `url`, `header` and `body`. The values `url` and `body` can either be specified constantly as `body` / `url` or state-dependent as `bodyON` / `urlON` (values in case the device is currently ON) and `bodyOFF` / `urlOFF` (value in case the device id currently OFF). All combinations are possible. If a dependent value is specified, the state of the devce is evaluated first. If the result is ON, a value with suffix ON will be used, otherwise the value with the suffix OFF is used. 
+Finally the action for each button press needs to be specified in the block `keydown`. It contains `url`, `method`, `header` and `body`. The values `url` and `body` can either be specified constantly as `body` / `url` or state-dependent as `bodyON` / `urlON` (values in case the device is currently ON) and `bodyOFF` / `urlOFF` (value in case the device id currently OFF). All combinations are possible. If a dependent value is specified, the state of the devce is evaluated first. If the result is ON, a value with suffix ON will be used, otherwise the value with the suffix OFF is used. The value for `method` specifies which http verb is being used. If not provided PUT is assumed. The empty object {} is assumed for `body` and `header`, if not provided.
 Example:
 ```
         "keydown": {
@@ -195,6 +195,7 @@ Here is a full example configuration for a button controlling a Tasmota device. 
         "name": "Tasmota Lamp",
         "state_req": {
             "url": "http://192.168.0.100/cm?cmnd=status/power",
+            "method": "GET",
             "stateON": '{"POWER":"ON"}',
         },
         "colorON" : 0x00FF00,
@@ -202,6 +203,7 @@ Here is a full example configuration for a button controlling a Tasmota device. 
         "keydown": {
             "urlON": "http://192.168.0.100/cm?cmnd=Power%20Off",
             "urlOFF": "http://192.168.0.100/cm?cmnd=Power%20On",
+            "method": "PUT",
             "header": {"content-type": "application/json"},
             "body": "{}"
         }
@@ -237,6 +239,7 @@ After you've identified the light you'd like to turn on/off, note down its ID an
         "name": "Philips HUE Lamp",
         "state_req": {
             "url": "http://YOUR-HUE-BRIDGE-IP-HERE/api/YOUR-GENERATED-USERNAME-HERE/lights/ID",
+            "method": "GET",
             "path": ["state","on"],
             "stateON": 'True'
         },
@@ -244,9 +247,35 @@ After you've identified the light you'd like to turn on/off, note down its ID an
         "colorOFF": 0xFF0000,
         "keydown": {
             "url": "http://YOUR-HUE-BRIDGE-IP-HERE/api/YOUR-GENERATED-USERNAME-HERE/lights/ID",
+            "method": "PUT",
             "header": {"content-type": "application/json"},
             "bodyON": "{\"on\":false}",
             "bodyOFF": "{\"on\":true}"
+        }
+    },
+```
+
+### squeezebox
+The OpenSource Multi-room speaker system Squeezebox can be controlled via an http api. Here is an example how to integrate it into WiKeyBow. To control the players, the IP/Port of the server and the MAC-Adress of the specific player is needed. The MAC can be found in the WEB-Interface of the server under "Settings" -> "Player".
+```
+    "key_3_in_row_4":{
+        "name": "squeeze play/pause",
+        "colorON": 0x0000ab,
+        "colorOFF": 0xA00000,
+        "state_req": {
+            "url": "http://<SqueezeServerIP>:<SqueezeServerPort>/jsonrpc.js",
+            "method": "POST",
+            "header": {"content-type": "application/json"},
+            "body": "{\"method\": \"slim.request\", \"params\": [\"<PlayerMAC>\", [\"status\"]]}",
+            "path": ["result", "mode"],
+            "stateON": "play"
+        },
+        "keydown": {
+            "url": "http://<SqueezeServerIP>:<SqueezeServerPort>/jsonrpc.js",
+            "method": "POST",
+            "header": {"content-type": "application/json"},
+            "bodyOFF": "{\"method\": \"slim.request\", \"params\": [\"<PlayerMAC>\", [\"play\"]]}",
+            "bodyON": "{\"method\": \"slim.request\", \"params\": [\"<PlayerMAC>\", [\"pause\"]]}"
         }
     },
 ```
