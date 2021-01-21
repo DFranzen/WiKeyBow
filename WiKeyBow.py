@@ -24,6 +24,7 @@ layer1 = {
         "state_req": {
             "bash": "echo ON"
             "url": "http://...",
+            "method": "GET",
             "path": ["prop1", "prop2"],
             "stateON": 'ON'
         },
@@ -35,6 +36,7 @@ layer1 = {
             "url": "http://...",
             "urlON": "http://...",
             "urlOFF": "http://...",
+            "method": "PUT",
             "header": {"content-type": "application/json"},
             "body": "{\"on\":false}",
             "bodyON": "{\"on\":false}",
@@ -64,6 +66,7 @@ layer2 = {
         "state_req": {
             "bash": "echo ON"
             "url": "http://...",
+            "method": "GET",
             "path": ["prop1", "prop2"],
             "stateON": 'ON'
         },
@@ -74,6 +77,7 @@ layer2 = {
             "url": "http://...",
             "urlON": "http://...",
             "urlOFF": "http://...",
+            "method": "POST",
             "header": {"content-type": "application/json"},
             "body": "{\"on\":false}",
             "bodyON": "{\"on\":false}",
@@ -92,8 +96,7 @@ layer2 = {
     "key_2_in_row_4": {},
     "key_3_in_row_4": {}
 }
-
-layers = [{}, layer1, layer2]
+layers = [{}, layer1, layer2, layer_Esszimmer, layer_Arbeitszimmer]
 layer_select = 1
 selection_layer = {}
 
@@ -140,6 +143,21 @@ def update_color(key_name):
     if (l_s == layer_select):
         set_color(key_name,color)
     
+def get_state_req_method(state_req):
+    if "method" in state_req:
+        return state_req["method"]
+    return "GET"
+
+def get_state_req_body(state_req):
+    if "body" in state_req:
+        return state_req["body"]
+    return "{}"
+
+def get_state_req_header(state_req):
+    if "header" in state_req:
+        return state_req["header"]
+    return {}
+
 def get_keydown_url(key):
     state = get_state(key)
 
@@ -152,6 +170,11 @@ def get_keydown_url(key):
 
     return ""
 
+def get_keydown_method(keydown):
+    if "method" in keydown:
+        return keydown["method"]
+    return "PUT"
+
 def get_keydown_body(key):
     state = get_state(key)
 
@@ -163,6 +186,12 @@ def get_keydown_body(key):
             return keydown["body"]
 
     return ""
+
+def get_keydown_header(keydown):
+    if "header" in keydown:
+        return keydown["header"]
+    return {}
+
 
 def get_keydown_bash(key):
     state = get_state(key)
@@ -177,7 +206,6 @@ def get_keydown_bash(key):
     return ""
 
 def update_all():
-    print ("Starting update")
     keys = layers[layer_select]
 
     for kN in keyNames:
@@ -187,7 +215,6 @@ def update_all():
             thread.start()
         else:
             set_color(kN,0x000000)
-    print("update finished")
         
 
 def update_state():
@@ -208,7 +235,17 @@ def get_state(key):
         state_req = key["state_req"]
         if "url" in state_req:
             try:
-                res = requests.get(state_req["url"])
+                http_action = get_state_req_method(state_req)
+                header = get_state_req_header(state_req)
+                body = get_state_req_body(state_req)
+                
+                if http_action == "GET":
+                    res = requests.get(state_req["url"],headers=header)
+                elif http_action == "POST":
+                    res = requests.post(state_req["url"],headers=header, data = body)
+                elif http_action == "PUT":
+                    res = requests.put(state_req["url"],headers=header, data = body)
+                    
                 if "path" in state_req:
                     doc = res.json()
                     for folder in state_req["path"]:
@@ -229,7 +266,6 @@ def get_state(key):
                 output, error = process.communicate()
                 
                 res = output.decode('UTF-8').rstrip()
-                print("State result is "+ res)
                 if process.returncode != 0:
                     key["state"]=""
                 elif (res == state_req["stateON"]):
@@ -262,17 +298,22 @@ def handle_keydown(keyName):
         url = get_keydown_url(key)
         bash = get_keydown_bash(key)
         if not (url == ""):
-            body = get_keydown_body(key)
-            # execute correct body
-            try: 
-                res = requests.put(url,data=body, headers=keydown["header"])
+            try:
+                http_action = get_keydown_method(keydown)
+                body = get_keydown_body(key)
+                header = get_keydown_header(keydown)
+                if http_action == "GET":
+                    res = requests.get(url, headers=header)
+                elif http_action == "PUT":
+                    res = requests.put(url,data=body, headers=header)
+                elif http_action == "POST":
+                    res = requests.post(url,data=body, headers=header)
             except:
                 res = ""
         if not (bash == ""):
             try:
                 process = subprocess.Popen(bash, shell=True, stdout=subprocess.PIPE)
                 output, error = process.communicate()
-
             except:
                 output = ""
         if "layer" in keydown:
@@ -291,8 +332,6 @@ def handle(button):
     keys = layers[layer_select]
     print("event on " + keyName)
 
-    print("state is " + str(GPIO.input(pins[button])))
-    
     if GPIO.input(pins[button]) == 1:
         # KeyUp Event
         key_down[keyName]=False
