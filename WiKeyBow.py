@@ -15,6 +15,7 @@ keyNames = ["key_1_in_row_1", "key_1_in_row_2","key_1_in_row_3","key_1_in_row_4"
 pins = [20,6,22,17,16,12,24,27,26,13,5,23]
 
 layer1 = {
+    "color": 0x00ff00,
     "key_1_in_row_1": {
         "name":  "Lamp"
         "color": 0x1eff1e,
@@ -54,6 +55,7 @@ layer1 = {
 }
 
 layer2 = {
+    "color": 0x0000ff,
     "key_1_in_row_1": {
         "name":  "Lamp"
         "color": 0x1eff1e,
