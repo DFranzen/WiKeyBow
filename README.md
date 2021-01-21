@@ -6,15 +6,14 @@ A python-fireware for the pimoroni KeyBow 12-Key Keyboard based on Raspberry Pi 
 * Independent button configuration: Each button can controll a different device
 * http calls or bash commands: Each button can execute a different bash command. Additionally easy Configuration for http calls are available
 * State indication via LED: Each device controlled by a Button tracks the state of the device (ON or OFF) and indicates the state with the color (fully configurable)
-* Automatic state update for each buttons: The state indicator is automatically updated to account for cahnges from different controls
+* Automatic and asynchronious state update for each buttons: The state indicator is automatically updated to account for cahnges from different controls
+* Multiple layouts to switch without, reconfiguration or restart
 
 ## Anti-Features
 * Full Keyboard animations: Each Button only affects the color of it's own LED. There are no keyboard-wide animations
 * USB-Keyboard-compatibility: The Keyboard does not transmit any control via a USB-Connection, even if it is pluged into a computer
 
 ## Feature Ideas
-* Multi-press support
-* Layer-switching
 * Read configuration from JSON
 * Additional Events for keyup, longpress
 
@@ -47,8 +46,8 @@ A python-fireware for the pimoroni KeyBow 12-Key Keyboard based on Raspberry Pi 
 * It is also needed to setup the devices, to be controlled, with a static IP.
 
 ## Configuration
+For each button, three properties need to be configured: Color, State-update and KeyPress-Action. All these configurations are specified at the top of the script in object form. One such configuration for each button is combined into a layout (called layer). All layers together then form the configuration:
 
-For each button, three properties need to be configured: Color, State-update and KeyPress-Action. All these configurations are specified at the top of the script.
 ### Color
 The color for each button can be configured in either of two ways:
 #### Constant Color
@@ -134,6 +133,39 @@ Example:
         }
 ```
 
+### Layouts
+To control more than 12 devices, without the need to change configuration, WiKeyBow implements different layouts (called layers). Each layout configures the color, state-request and button-action for each button. For switching between layouts, the additional button action `layout` is available.
+Example:
+```
+    "key_2_in_row_4":{
+        "color": 0xdfdfdf,
+        "keydown": {
+            "layer":3
+        }
+    },
+
+```
+When a button with such a button-action is pressed, the keyboard changes into the layer with the given index. The order of the layers is defined in the list layers. After a switch to a new layer the status of all buttons is updated immediately. 
+
+A special layer with index 0 is created automatically. It contains one button for each known layer and can be accessed with a button configuration like the following:
+```
+    "key_2_in_row_4":{
+        "color": 0xdfdfdf,
+        "keydown": {
+            "layer":0
+        }
+    },
+
+```
+When pressed, this button switches to a meta-layer, where each button switches to a different known layer, sorted in the order from the `layers` list (starting at key_1_in_row_4, progressing to key_1_in_row_3 first). The color of the button for each layer can be specified in the layer definition by defining the `color` property outside of the button definitions.
+Example: layer1 has a green button in layer0
+```
+layer1 = {
+    "color": 0x00ff00,
+    "key_1_in_row_1": {
+        "name":  "Lamp"
+        ...
+```
 ## Examples
 ### TP-Link kasa
 To control a Kasa-device, the auxiliary script tplink-smartplug.py (https://github.com/softScheck/tplink-smartplug) is used. The following example shows how to use it in WiKeyBow. The script needs to be played in the home-driectory, or the path in state_req and keydown needs to be adjusted. Also adjust the IP of the device as needed.
