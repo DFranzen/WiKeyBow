@@ -94,6 +94,8 @@ Example:
 ```
 In this example, all parts of the response except `{"state": {"on": " ... "}}` are ignored.
 
+Another method to avoid comparing the whole result string is to specify `"compare": "in"` within the `state_req`-Block. With this setting, the state is evaluated to `ON` if the result-string contains the string provided as `stateON`.
+
 ### Button-action
 Finally the action for each button press needs to be specified in the block `keydown`. It contains `url`, `method`, `header` and `body`. The values `url` and `body` can either be specified constantly as `body` / `url` or state-dependent as `bodyON` / `urlON` (values in case the device is currently ON) and `bodyOFF` / `urlOFF` (value in case the device id currently OFF). All combinations are possible. If a dependent value is specified, the state of the devce is evaluated first. If the result is ON, a value with suffix ON will be used, otherwise the value with the suffix OFF is used. The value for `method` specifies which http verb is being used. If not provided PUT is assumed. The empty object {} is assumed for `body` and `header`, if not provided.
 Example:
@@ -278,6 +280,34 @@ The OpenSource Multi-room speaker system Squeezebox can be controlled via an htt
             "bodyON": "{\"method\": \"slim.request\", \"params\": [\"<PlayerMAC>\", [\"pause\"]]}"
         }
     },
+```
+
+### Panasonic SmartTV
+Many Panasonic SmartTVs can be controlled via Viera with IP commands. Here is a settings-block to turn off/on such a SmartTV:
+```
+    "key_3_in_row_4": {
+        "name": "TV",
+        "state_req": {
+            "url": "http://<TVIP>:55000/dmr/ddd.xml",
+            "method": "GET",
+            "stateON": "<manufacturer>Panasonic</manufacturer>",
+            "compare": "in"
+        },
+        "colorON" : 0x00FF00,
+        "colorOFF": 0xFF0000,
+        "keydown": {
+            "url": "http://<TVIP>:55000/nrc/control_0",
+            "method": "POST",
+            "header": {
+                "Content-Type": "text/xml; charset=\"utf-8\"",
+                "SOAPACTION": "\"urn:panasonic-com:service:p00NetworkControl:1#X_SendKey\""
+            },
+            "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:\
+encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\"><s:Body><u:X_SendKey xmlns:u=\"urn:panasonic-com:service:p00NetworkCont\
+rol:1\"><X_KeyEvent>NRC_POWER-ONOFF</X_KeyEvent></u:X_SendKey></s:Body></s:Envelope>"
+        }
+    },
+
 ```
 
 ### Linux Computer: XDoTool via SSH
