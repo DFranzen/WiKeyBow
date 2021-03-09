@@ -1,18 +1,15 @@
 #!/usr/bin/python3
 
-from apa102_pi.driver import apa102
-import RPi.GPIO as GPIO
-
 import requests
 import subprocess
 import threading
 from time import sleep
+import keybow
 
-keyNames = ["key_1_in_row_1", "key_1_in_row_2","key_1_in_row_3","key_1_in_row_4",
-"key_2_in_row_1", "key_2_in_row_2","key_2_in_row_3","key_2_in_row_4",
-"key_3_in_row_1", "key_3_in_row_2","key_3_in_row_3","key_3_in_row_4"]
-
-pins = [20,6,22,17,16,12,24,27,26,13,5,23]
+keyNames = ["key_1_in_row_4","key_2_in_row_4","key_3_in_row_4",
+            "key_1_in_row_3","key_2_in_row_3","key_3_in_row_3",
+            "key_1_in_row_2","key_2_in_row_2","key_3_in_row_2",
+            "key_1_in_row_1","key_2_in_row_1","key_3_in_row_1"]
 
 layer1 = {
     "color": 0x00ff00,
@@ -26,7 +23,8 @@ layer1 = {
             "url": "http://...",
             "method": "GET",
             "path": ["prop1", "prop2"],
-            "stateON": 'ON'
+            "stateON": 'ON',
+            "compare": "="
         },
         "keydown": {
             "layer": 0,
@@ -68,7 +66,8 @@ layer2 = {
             "url": "http://...",
             "method": "GET",
             "path": ["prop1", "prop2"],
-            "stateON": 'ON'
+            "stateON": 'ON',
+            "compare": "in"
         },
         "keydown": {
             "bash": "echo ON",
@@ -100,27 +99,33 @@ layers = [{}, layer1, layer2, layer_Esszimmer, layer_Arbeitszimmer]
 layer_select = 1
 selection_layer = {}
 
+#Create Layer selection layer 0
 for i in range(1,len(layers)):
     column = int((i-1)/4) + 1
     row = 4 - int((i-1)%4)
     keyName = "key_" + str(column) + "_in_row_" + str(row)
     layer = layers[i]
-    selection_layer[keyName] = {
-        "color": layer["color"],
-        "keydown": {
-            "layer": i
-        }
+    if bool(layer):
+        selection_layer[keyName] = {
+            "color": layer["color"],
+            "keydown": {
+                "layer": i
+            }
             
-    }
+        }
 layers[0] = selection_layer
 
-strip = apa102.APA102(num_led=12, mosi=10, sclk=11, order='rgb')
+#strip = apa102.APA102(num_led=12, mosi=10, sclk=11, order='rgb')
+
+def hex_to_rgb(value):
+    return (int(value/256/256),int(value/256)%256,value%256)
 
 def set_color(key_name, color):
     index = keyNames.index(key_name)
-    strip.set_pixel_rgb(index, color)
-    strip.show()
-
+    r,g,b = hex_to_rgb(color)
+    keybow.set_led(index,r,g,b)
+    keybow.show()
+    
 def get_color(key_name):
     global layer_select
     keys = layers[layer_select]
@@ -147,6 +152,12 @@ def get_state_req_method(state_req):
     if "method" in state_req:
         return state_req["method"]
     return "GET"
+
+def get_state_req_compare(state_req):
+    if "compare" in state_req:
+        return state_req["compare"]
+    return "="
+
 
 def get_state_req_body(state_req):
     if "body" in state_req:
@@ -208,14 +219,14 @@ def get_keydown_bash(key):
 def update_all():
     keys = layers[layer_select]
 
+#    keybow.clear()
+#    keybow.show()
+    
     for kN in keyNames:
         if kN in keys:
             invalidate_state(keys[kN])
             thread =threading.Thread(target=update_color, name="Color " + kN, args=[kN])
             thread.start()
-        else:
-            set_color(kN,0x000000)
-        
 
 def update_state():
     global layer_select
@@ -254,10 +265,19 @@ def get_state(key):
                 else:
                     restext = res.text
 
-                if (restext == state_req["stateON"]):
-                    key["state"]="ON"
-                else:
-                    key["state"]="OFF"
+                compare=get_state_req_compare(state_req)
+                
+                if compare == "=":
+                    if (restext == state_req["stateON"]):
+                        key["state"]="ON"
+                    else:
+                        key["state"]="OFF"
+                elif compare == "in":
+                    if (state_req["stateON"] in restext):
+                        key["state"]="ON"
+                    else:
+                        key["state"]="OFF"
+                    
             except:
                 key["state"]=""
         elif "bash" in state_req:
@@ -279,10 +299,6 @@ def get_state(key):
         key["state"] = ""
         
     return key["state"]
-
-key_down = {}
-for kN in keyNames:
-    key_down[kN]=False
 
 def handle_keydown(keyName):
     global layer_select
@@ -319,49 +335,28 @@ def handle_keydown(keyName):
         if "layer" in keydown:
             layer_select = keydown["layer"]
             print("switching to layer " + str(layer_select))
+            keybow.clear()
             update_all()
         invalidate_state(key)
         sleep(0.3)
     update_color(keyName)
     print("finished Handling keydown on " + keyName)
 
-    
-def handle(button):
-    global key_down
+@keybow.on()        
+def handle(button,state):
     keyName = keyNames[button]
     keys = layers[layer_select]
+    
     print("event on " + keyName)
 
-    if GPIO.input(pins[button]) == 1:
+    if not state:
         # KeyUp Event
-        key_down[keyName]=False
         print("is keyup Event")
-        return
-
-    if key_down[keyName]:
-        # if already down -> ignore
-        print("Bounce detected")
-        return
     else: 
-        key_down[keyName] = True
-
-    if keyName in keys:
-        handler = threading.Thread(target=handle_keydown, args=[keyName])
-        handler.start() 
-        
-    print("Event delegated")
-
-def set_handler(id):
-    pin = pins[id]
-    
-    GPIO.setup(pin,GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.add_event_detect(pin, GPIO.BOTH, bouncetime=50, callback=lambda x: handle(id))
-
-
-t_handlers = {}
-for i in range(0,len(pins)):
-    t_handlers[i] = threading.Thread(target=set_handler, args=[i])
-    t_handlers[i].start() 
+        if keyName in keys:
+            handler = threading.Thread(target=handle_keydown, args=[keyName])
+            handler.start() 
+            print("Event delegated")
 
 thread = threading.Thread(target=update_state, args=())
 thread.daemon = True                            # Daemonize thread
