@@ -23,9 +23,9 @@ A python-fireware for the pimoroni KeyBow 12-Key Keyboard based on Raspberry Pi 
   * `sudo apt install -y python3-pip python3-rpi.gpio`
   * `sudo pip3 install apa102-pi`
 * Enable SPI `sudo raspi-config` -> Interface Options -> SPI 
-* Download keybow.py
+* Download WiKeyBow.py to the Pi
 * enable autostart
-  * Create service script `/etc/systemd/system/WiKiBo.service`
+  * Create service script `/etc/systemd/system/WiKiBow.service`
   * insert the following code (with PATH/TO/SCRIPT adjusted)
   ```
   [Unit]
