@@ -64,7 +64,7 @@ Example:
 When specifying the color state-dependent, also a `color` can be given without state. This color is used in case the state cannot be determined. If no such default color is given, 0x000000 (LED switched off) is used as default color
 
 ### State-update
-If the button is state-dependent (either for the color or for the button-action), a command needs to be specified to evaluate the state of the device. This is done in the property `state_req`. It can be either a http-GET call or a bash-command. 
+If the button is state-dependent (either for the color or for the button-action), a command needs to be specified to evaluate the state of the device. This is done in the property `state_req`. It can be either a http call or a bash-command. 
 Additionally a value `stateON` needs to be specified as an expected value for the ON state. To evaluate the state of a device, the command is executed and then compared to the value `stateON`.
 Example:
 ```
